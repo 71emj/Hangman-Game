@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+	<title>This is a prototype to my hangman game</title>
+	<link href="https://fonts.googleapis.com/css?family=Coming+Soon|Cutive+Mono" rel="stylesheet">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+	<style>
+	.navbar {
+		border-radius: 0px;
+	}
+	html {
+		height: 100%;
+		overflow: hidden;
+	}
+
+	main {
+		position: relative;
+		top: 0;
+		min-height: 100%;
+		padding:30rem 0;
+	}
+
+	header button {
+		position: relative;
+		top: 9px;
+	}
+	
+	p {
+		text-align: center;
+		font-family: "Cutive Mono", monospace;
+		font-size: 21px;
+		font-weight: bold;
+		letter-spacing: 2px;
+	}
+
+	p:first-child {
+		font-family: "Coming Soon", monospace;
+		font-size: 36px;
+		font-weight: 600;
+	}
+
+	</style>
+</head>
+
+<body>
+	<header class="navbar navbar-inverse navbar-fixed-bottom">
+		<div class="container">
+			<div class="navbar-header">
+				<a class="navbar-brand">
+					Hangman Game
+				</a>
+			</div>
+			<div class="nav navbar-nav navbar-right">
+				<button class="btn" id="start">
+					Let's start the game
+				</button>
+				<button class="btn" id="stop">
+					Reset Game
+				</button>
+			</div>
+		</div>
+	</header>
+	<main>
+		<div class="contianer">
+			<div class="row">
+				<p class="col-sm-8 col-sm-offset-2" id="word">
+					Ha Ha, Hangman.
+				</p>
+				<div class="col-sm-2"></div>
+				<div class="col-sm-12"></div>
+				<p class="col-sm-8 col-sm-offset-2" id="myguess">
+					Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quaerat error voluptas illum commodi cum, sapiente alias voluptates aspernatur enim earum et, quasi molestiae, illo maxime omnis cumque officiis delectus at.
+				</p>
+				<div class="col-sm-2"></div>
+				<p class="col-sm-6 col-sm-offset-3" id="hint"></p>
+				<div class="col-sm-3"></div>
+			</div>
+		</div>
+	</main>
+
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+	<script src="game.js"></script>
+</body>
+
+</html>
