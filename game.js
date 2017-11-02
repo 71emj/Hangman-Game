@@ -1,11 +1,11 @@
 (function() {
 	"use strict";
 
-	const strtBtn = document.getElementById('start'),
-		answerDisplay = document.getElementById('word'),
-		showGuessed = document.getElementById('myguess');
+	const domObj_StrBtn = document.getElementById('start'),
+		domObj_PuzzleDisplay = document.getElementById('word'),
+		domObj_UsrGuess = document.getElementById('myguess');
 
-	strtBtn.addEventListener('click', GameInit);
+	domObj_StrBtn.addEventListener('click', GameInit);
 
 	function GameInit() {
 		console.log('game init');
@@ -13,7 +13,7 @@
 		// if I have time the Array should be fetch from a json
 		const wordArr = new Array('Timothy', 'Jeng', 'Is', 'Really', 'Pissed', 'Because', 'He', 'Is', 'Tired'),
 			// fetch string for player to guess
-			hangManWord = wordArr[Math.floor(Math.random() * wordArr.length)],
+			hangManWord = wordArr[Math.floor(Math.randomObj() * wordArr.length)],
 			strArr_hangManWord = hangManWord.toLowerCase().split('');
 
 		let obj_Lit = new Object();
@@ -22,10 +22,9 @@
 
 		// setting up the board
 		let str_Answer = renderBlankSpace(hangManWord);
-		answerDisplay.textContent = str_Answer;
-		showGuessed.textContent = ' ';
+		domObj_PuzzleDisplay.textContent = str_Answer;
+		domObj_UsrGuess.textContent = ' ';
 
-		// while (win_state) ?
 		console.log(`Start of the game check ${obj_Lit}`);
 		GameStart(hangManWord.toLowerCase(), str_Answer, obj_Lit, 7, hangManWord.length);
 	}
@@ -35,16 +34,15 @@
 		let cur_gameState = gameState,
 			cur_winState = winState;
 
-		document.addEventListener('keyup', function(e) {
-			// e.key is passing basically every keypress as literal string value
+		// document.addEventListener('keyup', function(e) { ... })
+		// easiest hack is to use event handler, instead of eventListener
+		// should revisit it sometime for alternative solve
+		document.onkeyup = function(e) {
+			// e.key is passing basically every keypress as literal string value 
 			const playerInput = e.key.toLowerCase(),
 				// use object literal to map out the index of chars (duplicates are stored together)
 				// indexArr is an array of char index
 				indexArr = obj_Lit[playerInput];
-
-			console.log(`Player input :${playerInput}`);
-			console.log(`Return index value :${indexArr}`);
-			console.log(playerInput);
 
 			// check for alphabet, non-input keys and redundant input
 			if (!(playerInput.match(/[a-z]/) !== null && playerInput.length < 2 && indexArr !== null)) {
@@ -54,38 +52,34 @@
 			// check for swing and a miss
 			if (indexArr === undefined) {
 				cur_gameState--;
-				return;
+				domObj_UsrGuess.textContent += `${playerInput} `;
+				// ending here can break the code by not
+			} else {
+				// call function to handle the match, temp_retArr = [processed string, winCount]
+				const temp_retArr = processAnswer(playerInput, indexArr, str_Output, true);
+				// clean out matched prop so that it won't match second time
+
+				obj_Lit[playerInput] = null;
+
+				str_Output = temp_retArr[0];
+				domObj_PuzzleDisplay.textContent = str_Output;
+				// update gameState, can be use to adjust difficulty
+				cur_winState -= temp_retArr[1];
 			}
 
-			// call function to handle the match, temp_retArr = [processed string, winCount]
-			const temp_retArr = processAnswer(playerInput, indexArr, str_Output);
+			console.log(typeof(playerInput));
+			console.log(`Player have ${cur_gameState} more chance to guess`);
+			console.log(`Player have ${cur_winState} more char to guessed`);
+			console.log(playerInput);
+			console.log('return from keyup handler');
 
-			// clean out matched prop so that it won't match second time
-			obj_Lit[playerInput] = null;
-
-			str_Output = temp_retArr[0];
-			answerDisplay.textContent = str_Output;
-
-			// update gameState, can be use to adjust difficulty
-			cur_winState -= temp_retArr[1];
-
-			console.log('This is inside macthed:');
-			console.log(obj_Lit);
-			// console.log(`You still got ${cur_gameState} chances left`); 
-			// console.log(`Only ${cur_winState} characters to go`);
-		})
-
-		if (cur_winState <= 0 || cur_gameState <= 0) {
-			// reset gamestate and delet all prop of the object literal
-			console.log('game ended');
-			endAndReset(obj_Lit, str_Input);
-			console.log(obj_Lit);
-		}
+			if (cur_winState <= 0 || cur_gameState <= 0) {
+				console.log('game ended');
+				endAndReset(obj_Lit, str_Input);
+			}
+			return;
+		};
 	}
-
-	// endAndReset(obj_Lit, str_Input);
-	// console.log(obj_Lit);
-
 
 	function renderBlankSpace(strArring) {
 		const result = strArring.split('').map(function(elem) {
@@ -95,7 +89,7 @@
 	}
 
 	// take string.split() as arg and return am object literal
-	function createDynamicObj(str_LowerCase, objLiteral) {
+	function createDynamicObj(lowerCaseStr_arr, objLiteral) {
 		// match multiple chars in a string and push into an array
 		function findAllIndex(char, array) {
 			const retArr = new Array;
@@ -104,43 +98,99 @@
 			})
 			return retArr;
 		}
-		for (let i = 0, l = str_LowerCase.length; i < l; i++) {
-			objLiteral[str_LowerCase[i]] = findAllIndex(str_LowerCase[i], str_LowerCase);
+		for (let i = 0, l = lowerCaseStr_arr.length; i < l; i++) {
+			objLiteral[lowerCaseStr_arr[i]] = findAllIndex(lowerCaseStr_arr[i], lowerCaseStr_arr);
 		}
 		return objLiteral;
 	}
 
-	function processAnswer(str_In, index, str_Render) {
+	function processAnswer(str_In, index, str_Render, trueFalse) {
 		// find blank space generated by the renderBlankSpace(), remove it than make a temp array
 		const tempArr = str_Render.replace(/\s/g, '').split('');
 		let count = 0;
-
 		// replacing the item in the index to player input
 		// important to note that index should be an array of collected references
-		index.forEach(function(elem) {
+		trueFalse && index.forEach(function(elem) {
 			// check if we are writing to the first char of the string
 			// tempArr[elem] = (str_In || ((elem === 0) && str_In.toUpperCase()));
 			tempArr[elem] = (elem === 0) ? str_In.toUpperCase() : str_In;
 			count++;
 		});
-
-		// a temp to test result
-		document.getElementById('myguess').textContent += `${str_In} `;
 		return [tempArr.join(' '), count]; // [processed string, count]
 	}
 
+	// dump object prop
+	function objectDump(obj, str_CharRef) {
+		for (let char of str_CharRef) {
+			delete obj[char];
+		}
+		return obj;
+	};
+
 	function endAndReset(obj, str_CharRef) {
 		// dump object prop
-		// obj_Lit is an instance of objLiteral created by createDynamicObj
-		// it's likely that this function should delete all props of both object literals
-		(function objectDump(obj, str_CharRef) {
-			for (let char of str_CharRef) {
-				delete obj[char];
-			}
-			return obj;
-		}(obj, str_CharRef));
+		objectDump(obj, str_CharRef);
 
-		// GameInit();
-		return obj = null;
+		// setTimeOut( function () { display win/lose screen },  )
+		GameInit();
 	}
 }());
+
+
+
+
+
+
+
+
+/// working on fetch json prototype
+
+/// creating an object could be helpful
+
+/// using object method to update data everytime game reinit
+
+/// important to note that this object is not a json library
+/// it's an instance of the children stored under a common theme
+
+/// string related function in previous block can be built into the object
+class objHangMan {
+	constructor(wordName, hint, img_url) {
+		this.word = wordName;
+		this.hint = hint;
+		this.img = img_url;
+	}
+}
+
+objHangMan.prototype.updateProp = function(wordName, hint, url) {
+	// both arguments and this needs to be stored as a ref to the objHangMan
+	// other wise the Object call is going to mess up with the assignment
+	const args = arguments,
+		locthis = this;
+	Object.getOwnPropertyNames(this).forEach(function(elem, index) {
+		locthis[elem] = args[index];
+		// console.log(this[elem]) is super cool
+	})
+}
+
+const hangManWord_1 = new objHangMan('timothy', 'just some random dude', 'images/img.jpg');
+
+
+// now an object instance can be created everytime gamereinit
+
+
+
+
+const jsonUrl = 'game.json';
+
+const jsonDat = fetch(jsonUrl)
+	.then(function(response) { return response.json() })
+	.then(function(json) {
+		let jsonNameArr = new Array();
+		Object.getOwnPropertyNames(json).forEach(function(elem) {
+			jsonNameArr.push(elem);
+		})
+		return jsonNameArr;
+	})
+
+
+console.log(jsonDat);
