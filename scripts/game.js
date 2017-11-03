@@ -29,7 +29,6 @@
 		domObj_PuzzleDisplay.textContent = str_Answer;
 		domObj_UsrGuess.textContent = ' ';
 		domObj_UsrGuess.textContent = objectLibrary.intro;
-		
 
 		// objectLibrary, canvas object, render string, gameState, winState
 		GameStart(objectLibrary, hangMan_draw, str_Answer, gameState, winState);
@@ -46,23 +45,26 @@
 
 		// use event.handler to avoid multiple listener assigned to document
 		document.onkeyup = function(e) {
-			domObj_Hint.textContent = `Hint: ${objectLibrary.hint}`;
 			// e.key is passing basically every keypress as literal string value 
 			const playerInput = e.key.toLowerCase(),
 				// use object literal to map out the index of chars (duplicates are stored together)
 				// indexArr is an array of char index
 				indexArr = objLit[playerInput];
 
+			domObj_Hint.textContent = `Hint: ${objectLibrary.hint}`;
+			
 			// check for alphabet, non-input keys and redundant input
 			if (!(playerInput.match(/[a-z]/) !== null && playerInput.length < 2 && indexArr !== null)) {
 				return;
 			}
 
+			gameState === 7 && (domObj_UsrGuess.textContent = ' ');
+
 			// check for swing and a miss
 			if (indexArr === undefined) {
 				const countDown = 8 - gameState; // (8 - 7), (8 - 6), (8 - 5)...
 
-				gameState === 7 && (domObj_UsrGuess.textContent = `${playerInput} `) || (domObj_UsrGuess.textContent += `${playerInput} `);
+				(domObj_UsrGuess.textContent += `${playerInput} `);
 				hangMan_draw[`step_${countDown}`]();
 				gameState--;
 			} else {
@@ -115,7 +117,7 @@
 
 	function endAndReset(obj, str_CharRef, canvasObj, trueFalse) {
 		domObj_StrBtn.style.display = 'none';
-		
+
 		trueFalse && (domObj_Hint.textContent = `Congratulations, you win!!`);
 		!trueFalse && (domObj_Hint.textContent = `Don't beat yourself up, try another time.`);
 
@@ -123,6 +125,7 @@
 		setTimeout(function() {
 			GameInit();
 			canvasObj.clear();
+			domObj_Hint.textContent = " ";
 		}, 1500);
 	}
 }());
