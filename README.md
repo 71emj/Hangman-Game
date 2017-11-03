@@ -3,10 +3,9 @@ hangman game
 
 the hangman game is gonna be built with three major part of the web_client.js that I need more practice in: 
 
-<em>1</em> using Fetch/XHR to download and parse json
-<em>2</em> working with Async using callbacks (and object literals to improve performance) 
-<em>3</em> using APIs (in this game, using canvas to animate hanging)
-...api is alright, as long as I have the patient to read through documentations. But canvas is fun, so why not :)
+using Fetch/XHR to download and parse json <br>	
+working with Async using callbacks (and object literals to improve performance) <br>
+using APIs (in this game, using canvas to animate hanging)...api is alright, as long as I have the patient to read through documentations. But canvas is fun, so why not :) <br>
 
 
 <strong><em>core_bug_fix_update</em></strong><br>
@@ -19,3 +18,12 @@ note: cautious in nesting eventListener within eventListener
 #git merge working_engine branch to master_Nov_01_2017
 
 
+
+<strong><em>a_hangman_game_prototype_update</em></strong><br>
+
+++ canvas.js
+++ object_library.js
+
+basically build a complete game prototype with three major blocks build in working state (could have bugs, don't really care now. I just want to finish documenting this update and goto bed).
+
+# git merge power_by_json(actually by a local library) to master_Nov_02_2017 
