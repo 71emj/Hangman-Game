@@ -3,56 +3,55 @@
 
 	const domObj_StrBtn = document.getElementById('start'),
 		domObj_PuzzleDisplay = document.getElementById('word'),
-		domObj_UsrGuess = document.getElementById('myguess');
+		domObj_UsrGuess = document.getElementById('myguess'),
+		domObj_Hint = document.getElementById('hint');
 
 	domObj_StrBtn.addEventListener('click', GameInit);
 
 	function GameInit() {
 		console.log('game init');
 
-		// setting up game std_In
-		// if I have time the Array should be fetch from a json
-		const wordArr = new Array('Timothy', 'Jeng', 'Is', 'Really', 'Pissed', 'Because', 'He', 'Is', 'Tired'),
-			// fetch string for player to guess
-			hangManWord = wordArr[Math.floor(Math.random() * wordArr.length)],
-			strArr_hangManWord = hangManWord.toLowerCase().split('');
+		// parsing data from library
+		const objectLibrary = parseObjectLibrary(stringLibrary, Math.floor(Math.random() * stringLibrary.length));
+		console.log(objectLibrary);
 
 		// setting up game end countdown
-		// cord x, cord y, stroke width, stroke length
-		const hangMan_draw = new drawHangMan(200, 0, 3, 100),
+		// cord x, cord y, stroke width, stroke length, canvas reference
+		const canvasRef = document.getElementById('canvas'),
+			hangMan_draw = new drawHangMan(200, 0, 3, 100, canvasRef),
 			gameState = 7, // 7 mistakes for every turn
-			winState = hangManWord.length; // check if player guessed all the letters
+			winState = objectLibrary.word.length; // check if player guessed all the letters
 
 		hangMan_draw.setBoard();
 
-		// if I have time to build the library block, this should be passed as library object method
-		// create an object literal to map out the index of all the char in a string
-		let obj_Lit = new Object();
-		obj_Lit = createDynamicObj(strArr_hangManWord, obj_Lit);
-
-		// board init
 		// setting up the board
-		let str_Answer = renderBlankSpace(hangManWord);
+		let str_Answer = renderBlankSpace(objectLibrary.word);
 		domObj_PuzzleDisplay.textContent = str_Answer;
 		domObj_UsrGuess.textContent = ' ';
+		domObj_UsrGuess.textContent = objectLibrary.intro;
+		
 
-		GameStart(hangManWord.toLowerCase(), str_Answer, obj_Lit, gameState, winState, hangMan_draw);
+		// objectLibrary, canvas object, render string, gameState, winState
+		GameStart(objectLibrary, hangMan_draw, str_Answer, gameState, winState);
 	}
 
-	function GameStart(str_Input, str_Output, obj_Lit, gameState, winState, hangMan_draw) {
+	function GameStart(objectLibrary, hangMan_draw, str_Answer, gameState, winState) {
 		console.log('game start');
+		const objLit = objectLibrary.objLit,
+			word = objectLibrary.word.toLowerCase();
 
 		domObj_StrBtn.style.display = 'none'; // temporarily disable click event 
+		// update game with hint
 
-		// document.addEventListener('keyup', function(e) { ... })
-		// easiest hack is to use event handler, instead of eventListener
-		// should revisit it sometime for alternative solve
+
+		// use event.handler to avoid multiple listener assigned to document
 		document.onkeyup = function(e) {
+			domObj_Hint.textContent = `Hint: ${objectLibrary.hint}`;
 			// e.key is passing basically every keypress as literal string value 
 			const playerInput = e.key.toLowerCase(),
 				// use object literal to map out the index of chars (duplicates are stored together)
 				// indexArr is an array of char index
-				indexArr = obj_Lit[playerInput];
+				indexArr = objLit[playerInput];
 
 			// check for alphabet, non-input keys and redundant input
 			if (!(playerInput.match(/[a-z]/) !== null && playerInput.length < 2 && indexArr !== null)) {
@@ -62,39 +61,36 @@
 			// check for swing and a miss
 			if (indexArr === undefined) {
 				const countDown = 8 - gameState; // (8 - 7), (8 - 6), (8 - 5)...
+
+				gameState === 7 && (domObj_UsrGuess.textContent = `${playerInput} `) || (domObj_UsrGuess.textContent += `${playerInput} `);
 				hangMan_draw[`step_${countDown}`]();
-				domObj_UsrGuess.textContent += `${playerInput} `;
 				gameState--;
 			} else {
 				// call function to handle the match, temp_retArr = [processed string, winCount]
-				const temp_retArr = processAnswer(playerInput, indexArr, str_Output, true);
-				// clean out matched prop so that it won't match  tim_2e
+				const temp_retArr = processAnswer(playerInput, indexArr, str_Answer, true);
 
-				obj_Lit[playerInput] = null;
+				// clean out matched prop so that it won't match again
+				objLit[playerInput] = null;
 
-				str_Output = temp_retArr[0];
-				domObj_PuzzleDisplay.textContent = str_Output;
+				str_Answer = temp_retArr[0];
+				domObj_PuzzleDisplay.textContent = str_Answer;
+
 				// update gameState, can be use to adjust difficulty
 				winState -= temp_retArr[1];
 			}
 
-			// console.log(typeof(playerInput));
-			// console.log(`Player have ${gameState} more chance to guess`);
-			// console.log(`Player have ${winState} more char to guessed`);
-			// console.log(playerInput);
-			// console.log('return from keyup handler');
-
 			// check for endgame state
 			if (winState <= 0 || gameState <= 0) {
 				console.log('game ended');
-				endAndReset(obj_Lit, str_Input, hangMan_draw);
+				winState <= 0 ? endAndReset(objLit, word, hangMan_draw, true) :
+					endAndReset(objLit, word, hangMan_draw, false);
 			}
 			return;
 		};
 	}
 
-	function renderBlankSpace(strArring) {
-		const result = strArring.split('').map(function(elem) {
+	function renderBlankSpace(str) {
+		const result = str.split('').map(function(elem) {
 			return '_';
 		});
 		return result.join(' ');
@@ -117,118 +113,97 @@
 		return [tempArr.join(' '), count]; // [processed string, count]
 	}
 
-	function endAndReset(obj, str_CharRef, canvasObj) {
-		// dump object prop
-		objectDump(obj, str_CharRef);
-		// reenabling click event
-		// domObj_StrBtn.style.display = 'initial';
+	function endAndReset(obj, str_CharRef, canvasObj, trueFalse) {
 		domObj_StrBtn.style.display = 'none';
+		
+		trueFalse && (domObj_Hint.textContent = `Congratulations, you win!!`);
+		!trueFalse && (domObj_Hint.textContent = `Don't beat yourself up, try another time.`);
 
 		// set timeout before reinit
-		// creates better ux
-		// consider create endgame state if I still have time after building 
-		// a local library for string search
 		setTimeout(function() {
-			// canvasObj.clear();			
-			// GameInit();
-			// interestingly the previous setup don't work, 
-			// both functions won't execute
 			GameInit();
 			canvasObj.clear();
 		}, 1500);
 	}
-
-
-
-
-
-
-
-
-	function createDynamicObj(lowerCaseStr_arr, objLiteral) {
-		// match multiple chars in a string and push into an array
-		function findAllIndex(char, array) {
-			const retArr = new Array;
-			array.forEach(function(elem, index) {
-				elem === char && retArr.push(index);
-			})
-			return retArr;
-		}
-		for (let i = 0, l = lowerCaseStr_arr.length; i < l; i++) {
-			objLiteral[lowerCaseStr_arr[i]] = findAllIndex(lowerCaseStr_arr[i], lowerCaseStr_arr);
-		}
-		return objLiteral;
-	}
-
-	// dump object prop
-	function objectDump(obj, str_CharRef) {
-		for (let char of str_CharRef) {
-			delete obj[char];
-		}
-		return obj;
-	};
-
-
 }());
 
 
-// return an object with 
-function parseObjectLibrary() {
+// return an object with all the prop use for the game
+// passing random number as parseIndex to access different part of the library
+function parseObjectLibrary(objLibrary, parseIndex) {
 
-}
+	// the class declaration is put here simply for easy management
+	// well not quite, can't think of a better place to put it when I am writing this block
+	class objHangMan {
+		constructor(theme, text, word, hint) {
+			this.theme = theme;
+			this.intro = text;
+			this.word = word;
+			this.hint = hint;
+			this.objLit = {};
+		}
 
+		createDynamicObj() {
+			const word_LowerCaseToArr = this.word.toLowerCase().split('');
 
+			function findAllIndex(char, array) {
+				const retArr = new Array;
+				array.forEach(function(elem, index) {
+					elem === char && retArr.push(index);
+				})
+				return retArr;
+			}
 
+			for (let i = 0, l = word_LowerCaseToArr.length; i < l; i++) {
+				this.objLit[word_LowerCaseToArr[i]] = findAllIndex(word_LowerCaseToArr[i], word_LowerCaseToArr);
+			}
+		}
 
-/// working on fetch json prototype
-
-/// creating an object could be helpful
-
-/// using object method to update data everytime game reinit
-
-/// important to note that this object is not a json library
-/// it's an instance of the children stored under a common theme
-
-/// string related function in previous block can be built into the object
-class objHangMan {
-	constructor(wordName, hint /*, img_url*/ ) {
-		this.theme = theme;
-		this.intro = text;
-		this.word = wordName;
-		this.hint = hint;
-		// would be great to have image, but since it's uncertain if I have time to build
-		// this block, I'll leave them out for now
-		// this.img = img_url;
+		propDump() {
+			for (let char of this.word.toLowerCase) {
+				delete this[char];
+			}
+		};
 	}
+
+	// this part of the code is not gonna be use in this version of the game
+	objHangMan.prototype.updateProp = function(arg) {
+		// both arguments and this needs to be stored as a ref to the objHangMan
+		// other wise the Object call is going to mess up with the assignment
+		const args = arguments,
+			locthis = this;
+		Object.getOwnPropertyNames(this).forEach(function(elem, index) {
+			locthis[elem] = args[index];
+			// console.log(this[elem]) is super cool
+		});
+	}
+
+	// now the parsing starts
+
+	// get the library indexed object name
+	// should be a string 
+	const library = objLibrary[parseIndex];
+	let library_meta_PropName;
+	Object.getOwnPropertyNames(objLibrary[parseIndex]).forEach(function(elem) {
+		library_meta_PropName = elem;
+	})
+
+	// console.log(library);
+	// console.log(library_meta_PropName);
+
+	// objHangMan(theme, text, word, hint)
+	const theme = library[library_meta_PropName]['theme'],
+		text = library[library_meta_PropName]['text'];
+
+	const randomIndex = (function() {
+			return Math.floor(Math.random() * library[library_meta_PropName]['library'].length)
+		}()),
+		word = library[library_meta_PropName]['library'][randomIndex]['word'],
+		hint = library[library_meta_PropName]['library'][randomIndex]['hint'];
+
+	const objHangMan_instance = new objHangMan(theme, text, word, hint);
+
+	// create object literal to update objLit prop
+	objHangMan_instance.createDynamicObj();
+	return objHangMan_instance;
 }
-
-objHangMan.prototype.updateProp = function(wordName, hint, url) {
-	// both arguments and this needs to be stored as a ref to the objHangMan
-	// other wise the Object call is going to mess up with the assignment
-	const args = arguments,
-		locthis = this;
-	Object.getOwnPropertyNames(this).forEach(function(elem, index) {
-		locthis[elem] = args[index];
-		// console.log(this[elem]) is super cool
-	});
-}
-
-
-console.log(stringLibrary);
-console.log(stringLibrary.length);
-console.log(stringLibrary[0]);
-console.log(stringLibrary[0]['animal']['text']);
-
-const hangManWord_1 = new objHangMan('timothy', 'just some random dude', 'images/img.jpg');
-
-
-// now an object instance can be created everytime gamereinit
-let library_metaPropName = new Array();
-for (let i = 0; i < stringLibrary.length; i++) {
-	Object.getOwnPropertyNames(stringLibrary[i]).forEach(function(elem, index) {
-		library_metaPropName.push(elem);
-	});
-}
-
-console.log(library_metaPropName[0]);
-console.log(library_metaPropName[1]);
