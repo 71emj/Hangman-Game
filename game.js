@@ -177,9 +177,6 @@ function parseObjectLibrary() {
 
 }
 
-
-
-
 /// working on fetch json prototype
 
 /// creating an object could be helpful
@@ -191,7 +188,7 @@ function parseObjectLibrary() {
 
 /// string related function in previous block can be built into the object
 class objHangMan {
-	constructor(wordName, hint /*, img_url*/ ) {
+	constructor(theme, text, wordName, hint) {
 		this.theme = theme;
 		this.intro = text;
 		this.word = wordName;
@@ -212,7 +209,6 @@ objHangMan.prototype.updateProp = function(wordName, hint, url) {
 		// console.log(this[elem]) is super cool
 	});
 }
-
 
 console.log(stringLibrary);
 console.log(stringLibrary.length);
