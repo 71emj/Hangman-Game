@@ -10,8 +10,8 @@ using APIs (in this game, using canvas to animate hanging)...api is alright, as 
 
 <strong><em>core_bug_fix_update</em></strong><br>
 
--- document.eventListener('keyup', function(e) { ... }) ---> game.js:41
-++ document.onkeyup = function(e) { ... } ---> game.js:41
+-- document.eventListener('keyup', function(e) { ... }) ---> game.js:41 <br>
+++ document.onkeyup = function(e) { ... } ---> game.js:41 <br>
 
 note: cautious in nesting eventListener within eventListener
 
@@ -21,8 +21,8 @@ note: cautious in nesting eventListener within eventListener
 
 <strong><em>a_hangman_game_prototype_update</em></strong><br>
 
-++ canvas.js
-++ object_library.js
+++ canvas.js <br>
+++ object_library.js <br>
 
 basically build a complete game prototype with three major blocks build in working state (could have bugs, don't really care now. I just want to finish documenting this update and goto bed).
 
