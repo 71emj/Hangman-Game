@@ -1,0 +1,69 @@
+[
+  {
+    "animal":
+    {
+      "theme": "Animals",
+      "text": "lorem ipsum",
+      "library": [
+      {
+        "word": "Dodo",
+        "hint": "A medium sized flightless bird that was discovered on the Island of Mauritius in the 1950s.",
+        "img": "dodo.jpg"
+      },
+      {
+        "word": "Cuscus",
+        "hint": "A large marsupial native to the Northern forest of Australia and the tropical island of Papua New Guinea.",
+        "img": "cuscus.jpg"
+      },
+      {
+        "word": "Antelope",
+        "hint": "A deer-like mammal found in Africa, Asia and parts of the Americas.",
+        "img": ""
+      },
+      {
+        "word": "Akita",
+        "hint": "A medium sized domestic Dog breed, first bred in Japan in the 1600s.",
+        "img": "akita.jpg"
+      },
+      {
+        "word": "Iguana",
+        "hint": "A large docile species of lizard native to the jungles of central and south America.",
+        "img": "iguana.jpg"
+      }]
+    }
+  },
+
+  {
+    "countries":
+    {
+      "theme": "Countries",
+      "text": "lorem ipsum",
+      "library": [
+      {
+        "word": "Dodo",
+        "hint": "A medium sized flightless bird that was discovered on the Island of Mauritius in the 1950s.",
+        "img": "dodo.jpg"
+      },
+      {
+        "word": "Cuscus",
+        "hint": "A large marsupial native to the Northern forest of Australia and the tropical island of Papua New Guinea.",
+        "img": "cuscus.jpg"
+      },
+      {
+        "word": "Antelope",
+        "hint": "A deer-like mammal found in Africa, Asia and parts of the Americas.",
+        "img": ""
+      },
+      {
+        "word": "Akita",
+        "hint": "A medium sized domestic Dog breed, first bred in Japan in the 1600s.",
+        "img": "akita.jpg"
+      },
+      {
+        "word": "Iguana",
+        "hint": "A large docile species of lizard native to the jungles of central and south America.",
+        "img": "iguana.jpg"
+      }]
+    }
+  }
+]

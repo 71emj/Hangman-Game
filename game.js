@@ -1,50 +1,58 @@
 (function() {
 	"use strict";
 
-	const strtBtn = document.getElementById('start'),
-		answerDisplay = document.getElementById('word'),
-		showGuessed = document.getElementById('myguess');
+	const domObj_StrBtn = document.getElementById('start'),
+		domObj_PuzzleDisplay = document.getElementById('word'),
+		domObj_UsrGuess = document.getElementById('myguess');
 
-	strtBtn.addEventListener('click', GameInit);
+	domObj_StrBtn.addEventListener('click', GameInit);
 
 	function GameInit() {
 		console.log('game init');
 
+		// setting up game std_In
 		// if I have time the Array should be fetch from a json
 		const wordArr = new Array('Timothy', 'Jeng', 'Is', 'Really', 'Pissed', 'Because', 'He', 'Is', 'Tired'),
 			// fetch string for player to guess
 			hangManWord = wordArr[Math.floor(Math.random() * wordArr.length)],
 			strArr_hangManWord = hangManWord.toLowerCase().split('');
 
-		let obj_Lit = new Object();
+		// setting up game end countdown
+		// cord x, cord y, stroke width, stroke length
+		const hangMan_draw = new drawHangMan(200, 0, 3, 100),
+			gameState = 7, // 7 mistakes for every turn
+			winState = hangManWord.length; // check if player guessed all the letters
+
+		hangMan_draw.setBoard();
+
+		// if I have time to build the library block, this should be passed as library object method
 		// create an object literal to map out the index of all the char in a string
+		let obj_Lit = new Object();
 		obj_Lit = createDynamicObj(strArr_hangManWord, obj_Lit);
 
+		// board init
 		// setting up the board
 		let str_Answer = renderBlankSpace(hangManWord);
-		answerDisplay.textContent = str_Answer;
-		showGuessed.textContent = ' ';
+		domObj_PuzzleDisplay.textContent = str_Answer;
+		domObj_UsrGuess.textContent = ' ';
 
-		// while (win_state) ?
-		console.log(`Start of the game check ${obj_Lit}`);
-		GameStart(hangManWord.toLowerCase(), str_Answer, obj_Lit, 7, hangManWord.length);
+		GameStart(hangManWord.toLowerCase(), str_Answer, obj_Lit, gameState, winState, hangMan_draw);
 	}
 
-	function GameStart(str_Input, str_Output, obj_Lit, gameState, winState) {
-		// define gamestates
-		let cur_gameState = gameState,
-			cur_winState = winState;
+	function GameStart(str_Input, str_Output, obj_Lit, gameState, winState, hangMan_draw) {
+		console.log('game start');
 
-		document.addEventListener('keyup', function(e) {
-			// e.key is passing basically every keypress as literal string value
+		domObj_StrBtn.style.display = 'none'; // temporarily disable click event 
+
+		// document.addEventListener('keyup', function(e) { ... })
+		// easiest hack is to use event handler, instead of eventListener
+		// should revisit it sometime for alternative solve
+		document.onkeyup = function(e) {
+			// e.key is passing basically every keypress as literal string value 
 			const playerInput = e.key.toLowerCase(),
 				// use object literal to map out the index of chars (duplicates are stored together)
 				// indexArr is an array of char index
 				indexArr = obj_Lit[playerInput];
-
-			console.log(`Player input :${playerInput}`);
-			console.log(`Return index value :${indexArr}`);
-			console.log(playerInput);
 
 			// check for alphabet, non-input keys and redundant input
 			if (!(playerInput.match(/[a-z]/) !== null && playerInput.length < 2 && indexArr !== null)) {
@@ -53,39 +61,37 @@
 
 			// check for swing and a miss
 			if (indexArr === undefined) {
-				cur_gameState--;
-				return;
+				const countDown = 8 - gameState; // (8 - 7), (8 - 6), (8 - 5)...
+				hangMan_draw[`step_${countDown}`]();
+				domObj_UsrGuess.textContent += `${playerInput} `;
+				gameState--;
+			} else {
+				// call function to handle the match, temp_retArr = [processed string, winCount]
+				const temp_retArr = processAnswer(playerInput, indexArr, str_Output, true);
+				// clean out matched prop so that it won't match  tim_2e
+
+				obj_Lit[playerInput] = null;
+
+				str_Output = temp_retArr[0];
+				domObj_PuzzleDisplay.textContent = str_Output;
+				// update gameState, can be use to adjust difficulty
+				winState -= temp_retArr[1];
 			}
 
-			// call function to handle the match, temp_retArr = [processed string, winCount]
-			const temp_retArr = processAnswer(playerInput, indexArr, str_Output);
+			// console.log(typeof(playerInput));
+			// console.log(`Player have ${gameState} more chance to guess`);
+			// console.log(`Player have ${winState} more char to guessed`);
+			// console.log(playerInput);
+			// console.log('return from keyup handler');
 
-			// clean out matched prop so that it won't match second time
-			obj_Lit[playerInput] = null;
-
-			str_Output = temp_retArr[0];
-			answerDisplay.textContent = str_Output;
-
-			// update gameState, can be use to adjust difficulty
-			cur_winState -= temp_retArr[1];
-
-			console.log('This is inside macthed:');
-			console.log(obj_Lit);
-			// console.log(`You still got ${cur_gameState} chances left`); 
-			// console.log(`Only ${cur_winState} characters to go`);
-		})
-
-		if (cur_winState <= 0 || cur_gameState <= 0) {
-			// reset gamestate and delet all prop of the object literal
-			console.log('game ended');
-			endAndReset(obj_Lit, str_Input);
-			console.log(obj_Lit);
-		}
+			// check for endgame state
+			if (winState <= 0 || gameState <= 0) {
+				console.log('game ended');
+				endAndReset(obj_Lit, str_Input, hangMan_draw);
+			}
+			return;
+		};
 	}
-
-	// endAndReset(obj_Lit, str_Input);
-	// console.log(obj_Lit);
-
 
 	function renderBlankSpace(strArring) {
 		const result = strArring.split('').map(function(elem) {
@@ -95,7 +101,51 @@
 	}
 
 	// take string.split() as arg and return am object literal
-	function createDynamicObj(str_LowerCase, objLiteral) {
+
+	function processAnswer(str_In, index, str_Render, trueFalse) {
+		// find blank space generated by the renderBlankSpace(), remove it than make a temp array
+		const tempArr = str_Render.replace(/\s/g, '').split('');
+		let count = 0;
+		// replacing the item in the index to player input
+		// important to note that index should be an array of collected references
+		trueFalse && index.forEach(function(elem) {
+			// check if we are writing to the  cha_1r of the string
+			// tempArr[elem] = (str_In || ((elem === 0) && str_In.toUpperCase()));
+			tempArr[elem] = (elem === 0) ? str_In.toUpperCase() : str_In;
+			count++;
+		});
+		return [tempArr.join(' '), count]; // [processed string, count]
+	}
+
+	function endAndReset(obj, str_CharRef, canvasObj) {
+		// dump object prop
+		objectDump(obj, str_CharRef);
+		// reenabling click event
+		// domObj_StrBtn.style.display = 'initial';
+		domObj_StrBtn.style.display = 'none';
+
+		// set timeout before reinit
+		// creates better ux
+		// consider create endgame state if I still have time after building 
+		// a local library for string search
+		setTimeout(function() {
+			// canvasObj.clear();			
+			// GameInit();
+			// interestingly the previous setup don't work, 
+			// both functions won't execute
+			GameInit();
+			canvasObj.clear();
+		}, 1500);
+	}
+
+
+
+
+
+
+
+
+	function createDynamicObj(lowerCaseStr_arr, objLiteral) {
 		// match multiple chars in a string and push into an array
 		function findAllIndex(char, array) {
 			const retArr = new Array;
@@ -104,43 +154,81 @@
 			})
 			return retArr;
 		}
-		for (let i = 0, l = str_LowerCase.length; i < l; i++) {
-			objLiteral[str_LowerCase[i]] = findAllIndex(str_LowerCase[i], str_LowerCase);
+		for (let i = 0, l = lowerCaseStr_arr.length; i < l; i++) {
+			objLiteral[lowerCaseStr_arr[i]] = findAllIndex(lowerCaseStr_arr[i], lowerCaseStr_arr);
 		}
 		return objLiteral;
 	}
 
-	function processAnswer(str_In, index, str_Render) {
-		// find blank space generated by the renderBlankSpace(), remove it than make a temp array
-		const tempArr = str_Render.replace(/\s/g, '').split('');
-		let count = 0;
+	// dump object prop
+	function objectDump(obj, str_CharRef) {
+		for (let char of str_CharRef) {
+			delete obj[char];
+		}
+		return obj;
+	};
 
-		// replacing the item in the index to player input
-		// important to note that index should be an array of collected references
-		index.forEach(function(elem) {
-			// check if we are writing to the first char of the string
-			// tempArr[elem] = (str_In || ((elem === 0) && str_In.toUpperCase()));
-			tempArr[elem] = (elem === 0) ? str_In.toUpperCase() : str_In;
-			count++;
-		});
 
-		// a temp to test result
-		document.getElementById('myguess').textContent += `${str_In} `;
-		return [tempArr.join(' '), count]; // [processed string, count]
-	}
-
-	function endAndReset(obj, str_CharRef) {
-		// dump object prop
-		// obj_Lit is an instance of objLiteral created by createDynamicObj
-		// it's likely that this function should delete all props of both object literals
-		(function objectDump(obj, str_CharRef) {
-			for (let char of str_CharRef) {
-				delete obj[char];
-			}
-			return obj;
-		}(obj, str_CharRef));
-
-		// GameInit();
-		return obj = null;
-	}
 }());
+
+
+// return an object with 
+function parseObjectLibrary() {
+
+}
+
+
+
+
+/// working on fetch json prototype
+
+/// creating an object could be helpful
+
+/// using object method to update data everytime game reinit
+
+/// important to note that this object is not a json library
+/// it's an instance of the children stored under a common theme
+
+/// string related function in previous block can be built into the object
+class objHangMan {
+	constructor(wordName, hint /*, img_url*/ ) {
+		this.theme = theme;
+		this.intro = text;
+		this.word = wordName;
+		this.hint = hint;
+		// would be great to have image, but since it's uncertain if I have time to build
+		// this block, I'll leave them out for now
+		// this.img = img_url;
+	}
+}
+
+objHangMan.prototype.updateProp = function(wordName, hint, url) {
+	// both arguments and this needs to be stored as a ref to the objHangMan
+	// other wise the Object call is going to mess up with the assignment
+	const args = arguments,
+		locthis = this;
+	Object.getOwnPropertyNames(this).forEach(function(elem, index) {
+		locthis[elem] = args[index];
+		// console.log(this[elem]) is super cool
+	});
+}
+
+
+console.log(stringLibrary);
+console.log(stringLibrary.length);
+console.log(stringLibrary[0]);
+console.log(stringLibrary[0]['animal']['text']);
+
+const hangManWord_1 = new objHangMan('timothy', 'just some random dude', 'images/img.jpg');
+
+
+// now an object instance can be created everytime gamereinit
+let library_metaPropName = new Array();
+for (let i = 0; i < stringLibrary.length; i++) {
+	Object.getOwnPropertyNames(stringLibrary[i]).forEach(function(elem, index) {
+		library_metaPropName.push(elem);
+	});
+}
+
+console.log(library_metaPropName[0]);
+console.log(library_metaPropName[1]);
