@@ -1,0 +1,61 @@
+html {
+	height: 100%;
+	overflow: hidden;
+}
+
+main {
+	position: relative;
+	top: 0;
+	min-height: 100%;
+	padding: 32rem 0;
+}
+
+header button {
+	position: relative;
+	top: 9px;
+}
+
+p {
+	text-align: center;
+	font-family: "Cutive Mono", monospace;
+	font-size: 21px;
+	font-weight: bold;
+	letter-spacing: 2px;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	-o-user-select: none;
+	user-select: none;
+	cursor: initial;
+}
+
+p:first-child {
+	font-family: "Coming Soon", monospace;
+	font-size: 36px;
+	font-weight: 600;
+}
+
+h2.text-center {
+	color: #7a7a7a;
+	padding-bottom: 0.5rem;
+	font-size: 2.25rem;
+}
+
+.invisible-clickarea {
+	display: block;
+	position: fixed;
+	top: 0;
+	height: calc(100vh - 60px);
+	width: 100vw;
+	cursor: pointer;
+	z-index: 1;
+}
+
+.navbar {
+	border-radius: 0px;
+}
+
+#canvas {
+	position: absolute;
+	height: auto;
+}
