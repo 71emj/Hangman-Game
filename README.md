@@ -26,4 +26,4 @@ note: cautious in nesting eventListener within eventListener
 
 basically build a complete game prototype with three major blocks build in working state (could have bugs, don't really care now. I just want to finish documenting this update and goto bed).
 
-# git merge power_by_json(actually by a local library) to master_Nov_02_2017 
+#git merge power_by_json(actually by a local library) to master_Nov_02_2017 
